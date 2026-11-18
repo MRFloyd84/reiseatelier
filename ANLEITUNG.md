@@ -48,6 +48,10 @@ Die App startet und arbeitet offline: Route, Planung, Tagebuch, Fotos, Ortssuche
 
 Der Tab „Notfall“ enthält die örtlichen Notrufnummern und die deutschen Botschaften und Konsulate für alle Länder der Route, dazu zentrale Nummern (Auswärtiges Amt, Kartensperrung, AIDA). Alle Nummern lassen sich antippen und funktionieren offline. Während der Reise steht oben das Land der heutigen oder nächsten Station, inklusive des passenden Konsulats für den Hafen. Unter „Eure Angaben“ tragt ihr Versicherung, Kontaktpersonen und Kabine ein; das wird mit der Abgleich-Datei geteilt. Weitere Hilfen im Notfall-Tab: „Schiff verpasst – was tun?“ (Schritt für Schritt mit nächstem Hafen), eine Taxi-Karte zum Vorzeigen in der Landessprache (mit Hafen, Liegeplatz und „Alle an Bord“-Zeit) und Dokumentfotos (Pass, Ausweis, Versicherungskarte). Die Fotos bleiben nur auf dem jeweiligen Gerät und kommen nicht in die Abgleich-Datei. Hafenagent, Telefon und Liegeplatz tragt ihr beim Bearbeiten einer Station unter „Für den Notfall (Hafen)“ ein – die Angaben stehen in der AIDA-Tagesinfo. Stand der Nummern: 18.11.2026 – kurz vor der Abreise einmal auf auswaertiges-amt.de prüfen.
 
+## Reisestatistik und Postkarten
+
+Auf der Startseite zeigt „Unsere Reise in Zahlen“ Seemeilen, Häfen, Länder, Kontinente, Seetage, Äquator- und Datumsgrenzen-Überquerungen – während der Reise wahlweise „bisher“ oder „gesamt“. „Als Bild teilen“ erzeugt daraus ein Bild für WhatsApp. Im Reisetagebuch macht „✉ Postkarte“ aus einem Eintrag eine Postkarte mit Foto, Ort, Datum und Text; Foto und Text lassen sich vor dem Teilen anpassen.
+
 ## Aktualisieren
 
 Neue Dateien einfach über die alten hochladen. Die Reisedaten bleiben dabei auf den Geräten erhalten. Beim nächsten Öffnen mit Internet lädt die App die neue Version.

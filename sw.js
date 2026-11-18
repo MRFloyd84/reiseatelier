@@ -1,6 +1,6 @@
 /* Reiseatelier – Offline-Unterstützung: App-Dateien vorhalten, Kartenkacheln beim Ansehen zwischenspeichern. */
-const VERSION='reiseatelier-v4';
-const SHELL=['./','./index.html','./style.css','./app.js','./core.js','./store.js','./planning.js','./information.js','./information-core.js','./preset.js','./diary.js','./home.js','./sync.js','./emergency-data.js','./emergency.js','./world.js','./cities.json','./vendor/leaflet.js','./vendor/leaflet.css','./manifest.webmanifest','./icon-192.png','./icon-512.png','./apple-touch-icon.png'];
+const VERSION='reiseatelier-v5';
+const SHELL=['./','./index.html','./style.css','./app.js','./core.js','./store.js','./planning.js','./information.js','./information-core.js','./preset.js','./diary.js','./home.js','./sync.js','./emergency-data.js','./emergency.js','./extras.js','./world.js','./cities.json','./vendor/leaflet.js','./vendor/leaflet.css','./manifest.webmanifest','./icon-192.png','./icon-512.png','./apple-touch-icon.png'];
 const TILES='reiseatelier-tiles',MAX_TILES=1500;
 self.addEventListener('install',e=>{e.waitUntil(caches.open(VERSION).then(c=>c.addAll(SHELL.map(u=>new Request(u,{cache:'reload'})))).then(()=>self.skipWaiting()));});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==VERSION&&k!==TILES).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});

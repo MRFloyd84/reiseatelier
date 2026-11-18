@@ -285,3 +285,26 @@ nav a.nav-sos.active{color:#b3261e}nav a.nav-sos.active:after{background:#b3261e
 .taxi-pay{font-size:18px;margin:10px 0 0;color:#333}
 .taxi-de{font-size:13px;color:#666;border-top:1px solid #ddd;padding-top:10px;margin:4px 0 0}
 .taxi-dialog p{color:#111}.taxi-dialog .taxi-de,.taxi-dialog .taxi-top{color:#666}
+/* Statistik & Postkarte */
+.home-stats{margin-bottom:20px}
+.st-seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.st-seg button{min-height:34px;padding:0 12px;font-size:13px}
+.st-seg button[aria-pressed=true]{background:var(--navy);color:#fff}
+.st-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:14px}
+.st-tile{display:flex;flex-direction:column;gap:2px;background:#f4f9f8;border-radius:12px;padding:14px 14px 12px;min-width:0}
+.st-icon{color:var(--teal);font-size:16px}
+.st-tile b{font-size:24px;color:var(--navy);line-height:1.15;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.st-tile span:not(.st-icon){font-size:13px;color:var(--navy);font-weight:600}
+.st-tile small{font-size:12px;color:var(--muted);line-height:1.4}
+.st-foot{margin-top:14px;align-items:center}
+.share-dialog{width:min(560px,96vw);max-height:96vh;overflow:auto;border:0;border-radius:16px;padding:18px 20px}
+.share-dialog::backdrop{background:rgba(0,0,0,.55)}
+.share-img{display:block;width:100%;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.15);margin:10px 0}
+.pc-thumbs{display:flex;gap:8px;overflow-x:auto;margin:6px 0 10px}
+.pc-thumbs button{flex:none;width:64px;height:64px;padding:0;border:2px solid transparent;border-radius:8px;overflow:hidden;background:#eee;cursor:pointer}
+.pc-thumbs button[aria-pressed=true]{border-color:var(--teal)}
+.pc-thumbs img{width:100%;height:100%;object-fit:cover}
+.pc-text{display:flex;flex-direction:column;gap:6px;font-size:14px;font-weight:700;color:var(--navy);margin-bottom:8px}
+.pc-text textarea{font:inherit;font-weight:400;border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.diary-actions{display:flex;gap:8px;flex-wrap:wrap}
+@media(max-width:600px){.st-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.st-tile{padding:10px 12px}.st-tile b{font-size:20px}}
