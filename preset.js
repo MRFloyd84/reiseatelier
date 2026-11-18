@@ -88,7 +88,7 @@ function renderCountdown(state){
   if(!c){el.hidden=true;return;}el.hidden=false;
   const fmt=d=>d.toLocaleString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
   if(c.phase==='before')el.innerHTML=`<div class="cd-units"><span><b>${c.d}</b>Tage</span><span><b>${c.h}</b>Std.</span><span><b>${c.m}</b>Min.</span></div><p>${esc(c.label)} · ${esc(fmt(c.when))} Uhr</p>`;
-  else if(c.phase==='during')el.innerHTML=`<div class="cd-units"><span><b>${c.day}</b>Reisetag</span><span><b>${c.totalDays}</b>Tage gesamt</span></div><p>${c.here?'Heute: '+esc(c.here.name):'Heute auf See'}</p>`;
+  else if(c.phase==='during')el.innerHTML=`<div class="cd-units"><span><b>${c.day}</b>Reisetag</span><span><b>${c.totalDays}</b>Tage gesamt</span></div><p>${c.here?'Heute: '+esc(c.here.name)+(root.TravelCore&&root.TravelCore.aboard(c.here)&&(c.here.end||c.here.start)===new Date().toLocaleDateString('sv-SE')?' · <strong>'+esc(root.TravelCore.aboardLabel(c.here))+'</strong>':''):'Heute auf See'}</p>`;
   else el.innerHTML=`<p class="cd-done">Reise beendet am ${esc(fmt(c.when))} Uhr – willkommen zurück!</p>`;
 }
 root.TravelPreset={worldTrip,countdown,renderCountdown,count:R.length};
