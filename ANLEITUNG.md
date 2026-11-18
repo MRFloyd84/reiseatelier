@@ -44,6 +44,10 @@ Beim Laden wird zusammengeführt, nicht überschrieben: Pro Station und Tagebuch
 
 Die App startet und arbeitet offline: Route, Planung, Tagebuch, Fotos, Ortssuche (eingebaute Liste mit rund 49.000 Orten) und eine Weltkarte mit Länderumrissen. Bereits angesehene Kartenausschnitte bleiben gespeichert. Online kommen die Detailkarte (OpenStreetMap), die genauere Ortssuche und der Abruf von Länder- und Klimadaten dazu.
 
+## Einreise
+
+Der Tab „Einreise“ listet, was ihr für die Länder der Route beantragen oder ausfüllen müsst (u. a. UK-ETA, ESTA, eVisitor Australien, Sri-Lanka-ETA, Seychellen, Einreisekarten für Singapur, Malaysia, Malediven, Indonesien) – jeweils mit Zeitfenster aus der Route, Kosten und Link zur offiziellen Seite. Jede von euch hakt getrennt ab; die Haken werden beim Abgleich einzeln zusammengeführt. Einige Formulare gehen erst wenige Tage vor Ankunft, also unterwegs an Bord. Ist etwas fällig, erscheint ein Hinweis auf der Startseite. Stand der Recherche: 18.11.2026 – die AIDA-Reiseunterlagen gehen vor.
+
 ## Notfall
 
 Der Tab „Notfall“ enthält die örtlichen Notrufnummern und die deutschen Botschaften und Konsulate für alle Länder der Route, dazu zentrale Nummern (Auswärtiges Amt, Kartensperrung, AIDA). Alle Nummern lassen sich antippen und funktionieren offline. Während der Reise steht oben das Land der heutigen oder nächsten Station, inklusive des passenden Konsulats für den Hafen. Unter „Eure Angaben“ tragt ihr Versicherung, Kontaktpersonen und Kabine ein; das wird mit der Abgleich-Datei geteilt. Weitere Hilfen im Notfall-Tab: „Schiff verpasst – was tun?“ (Schritt für Schritt mit nächstem Hafen), eine Taxi-Karte zum Vorzeigen in der Landessprache (mit Hafen, Liegeplatz und „Alle an Bord“-Zeit) und Dokumentfotos (Pass, Ausweis, Versicherungskarte). Die Fotos bleiben nur auf dem jeweiligen Gerät und kommen nicht in die Abgleich-Datei. Hafenagent, Telefon und Liegeplatz tragt ihr beim Bearbeiten einer Station unter „Für den Notfall (Hafen)“ ein – die Angaben stehen in der AIDA-Tagesinfo. Stand der Nummern: 18.11.2026 – kurz vor der Abreise einmal auf auswaertiges-amt.de prüfen.

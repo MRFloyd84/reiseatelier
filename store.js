@@ -96,7 +96,9 @@ const syncDoc=()=>base.collection('meta').doc('sync');
 async function getStamps(){const s=await retry(()=>syncDoc().get());const v=s.exists?s.data():{};return {items:{...(v.items||{})},tomb:{...(v.tomb||{})}};}
 let stampTail=Promise.resolve();
 function changeStamps(fn){const job=stampTail.then(async()=>{const st=await getStamps();fn(st,stamp());await retry(()=>syncDoc().set(st));});stampTail=job.catch(()=>{});return job;}
-function tripKeys(state){const m=new Map();for(const d of state.destinations||[])m.set('d:'+d.id,canonical(d));m.set('s',canonical({settings:state.settings,routeMode:state.routeMode}));return m;}
+/* Einreise-Haken werden einzeln abgeglichen (x:<aufgabe>|<person>), damit gleichzeitiges Abhaken beider Personen erhalten bleibt. */
+function splitSettings(settings){const s={...(settings||{})},checks=s.entry?.checks||{};if(s.entry)s.entry={...s.entry,checks:{}};return {s,checks};}
+function tripKeys(state){const m=new Map();for(const d of state.destinations||[])m.set('d:'+d.id,canonical(d));const {s,checks}=splitSettings(state.settings);m.set('s',canonical({settings:s,routeMode:state.routeMode}));for(const [k,v] of Object.entries(checks))m.set('x:'+k,v);return m;}
 function stampTrip(before,after){const a=tripKeys(before),b=tripKeys(after);return changeStamps((st,now)=>{for(const [k,v] of b)if(a.get(k)!==v){st.items[k]=now;delete st.tomb[k];}for(const k of a.keys())if(!b.has(k)){st.tomb[k]=now;delete st.items[k];}});}
 
 /* ---------- Sicherungen ---------- */
@@ -185,8 +187,15 @@ const Sync={
       else if(l){if(rt&&rt>=ls){stamps.tomb[k]=RS.tomb[k];n.tripDel++;}else{out.push(l);stamps.items[k]=LS.items[k]||stamp();}}}
     for(const S of [LS,RS])for(const [k,v] of Object.entries(S.tomb))if(k.startsWith('d:')&&!stamps.items[k]&&(!stamps.tomb[k]||t(v)>t(stamps.tomb[k])))stamps.tomb[k]=v;
     const sl=keyT(LS,'s'),sr=keyT(RS,'s'),useR=sr>sl;stamps.items.s=new Date(Math.max(sl,sr)||Date.now()).toISOString();
-    const merged=C().validateState({version:1,settings:useR?R.settings:L.settings,routeMode:useR?R.routeMode:L.routeMode,destinations:out});
-    if(useR&&canonical({s:R.settings,m:R.routeMode})!==canonical({s:L.settings,m:L.routeMode}))n.tripUpd++;
+    const Lc=splitSettings(L.settings).checks,Rc=splitSettings(R.settings).checks,checks={};
+    for(const c of new Set([...Object.keys(Lc),...Object.keys(Rc)])){const k='x:'+c,l=Lc[c],r=Rc[c],ls=keyT(LS,k),rs=keyT(RS,k),lt=tombT(LS,k),rt=tombT(RS,k);
+      if(l&&r){checks[c]=rs>ls?r:l;stamps.items[k]=new Date(Math.max(ls,rs)||Date.now()).toISOString();}
+      else if(r){if(lt&&lt>=rs)stamps.tomb[k]=LS.tomb[k];else{checks[c]=r;stamps.items[k]=RS.items[k]||stamp();n.tripUpd++;}}
+      else if(l){if(rt&&rt>=ls){stamps.tomb[k]=RS.tomb[k];n.tripUpd++;}else{checks[c]=l;stamps.items[k]=LS.items[k]||stamp();}}}
+    for(const S of [LS,RS])for(const [k,v] of Object.entries(S.tomb))if(k.startsWith('x:')&&!stamps.items[k]&&(!stamps.tomb[k]||t(v)>t(stamps.tomb[k])))stamps.tomb[k]=v;
+    const baseSettings=splitSettings(useR?R.settings:L.settings).s;
+    const merged=C().validateState({version:1,settings:{...baseSettings,entry:{...(baseSettings.entry||{}),checks}},routeMode:useR?R.routeMode:L.routeMode,destinations:out});
+    if(useR&&canonical({s:splitSettings(R.settings).s,m:R.routeMode})!==canonical({s:splitSettings(L.settings).s,m:L.routeMode}))n.tripUpd++;
     const local=await Diary.list(),Ld=new Map(local.map(e=>[e.id,e])),Rd=new Map(file.diary.filter(e=>e&&typeof e.id==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(e.date)).map(e=>[e.id,e]));
     const diaryPut=[],diaryDel=[];
     for(const [id,r] of Rd){const l=Ld.get(id),k='e:'+id,lt=tombT(LS,k);
