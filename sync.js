@@ -6,9 +6,15 @@ const h=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt
 const toast=m=>{try{notify(m);}catch{}};
 function ago(iso){if(!iso)return 'noch nie';const m=Math.round((Date.now()-Date.parse(iso))/60000);if(m<1)return 'gerade eben';if(m<60)return `vor ${m} Min.`;const hh=Math.round(m/60);if(hh<24)return `vor ${hh} Std.`;const d=Math.round(hh/24);return d===1?'gestern':`vor ${d} Tagen`;}
 const when=iso=>iso?new Date(iso).toLocaleString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}):'';
-function statusHtml(){const s=TravelStore.sync.status();return `Auf diesem Gerät zuletzt <b>geladen ${h(ago(s.loaded))}</b> · <b>gespeichert ${h(ago(s.saved))}</b>`;}
-function render(){qsa('[data-sync-status]').forEach(el=>el.innerHTML=statusHtml());
-  const strip=q('#home-sync');if(strip){const s=TravelStore.sync.status(),stale=!s.loaded||Date.now()-Date.parse(s.loaded)>3*86400000;strip.classList.toggle('sync-stale',TravelStore.mode!=='shared'&&stale);}}
+function statusHtml(){const s=TravelStore.sync.status();return (TravelStore.sync.dirty()?'<b class="dirty-note">Ungespeicherte Änderungen</b> · ':'')+`Auf diesem Gerät zuletzt <b>geladen ${h(ago(s.loaded))}</b> · <b>gespeichert ${h(ago(s.saved))}</b>`;}
+const isIOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(/Macintosh/.test(navigator.userAgent)&&navigator.maxTouchPoints>1);
+const standalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+let safariDismissed=false;try{safariDismissed=sessionStorage.getItem('ra.safariDismissed')==='1';}catch{}
+function bands(){const mode=TravelStore.mode;
+  const sw=q('#safari-warning');if(sw)sw.hidden=!(isIOS&&!standalone()&&!globalThis.claude&&!safariDismissed);
+  const uw=q('#unsaved-warning');if(uw){const dirty=mode&&mode!=='shared'&&TravelStore.sync.dirty();uw.hidden=!dirty;if(dirty){const c=TravelStore.sync.status().changed;q('#unsaved-text').textContent=`Letzte Änderung ${ago(c)}. Die andere sieht sie erst, wenn du die Abgleich-Datei speicherst.`;}}}
+function render(){bands();qsa('[data-sync-status]').forEach(el=>el.innerHTML=statusHtml());
+  const strip=q('#home-sync');if(strip){const s=TravelStore.sync.status(),stale=!s.loaded||Date.now()-Date.parse(s.loaded)>3*86400000;strip.classList.toggle('sync-stale',TravelStore.mode!=='shared'&&stale);strip.classList.toggle('sync-dirty',TravelStore.sync.dirty());}}
 const qsa=s=>[...document.querySelectorAll(s)];
 let busy=false;
 async function save(){if(busy)return;busy=true;try{toast('Abgleich-Datei wird erstellt …');const r=await TravelStore.sync.exportFile();if(r.ok)toast(`Abgleich-Datei gespeichert (${r.entries} Tagebucheinträge, ${r.photos} Fotos). In den geteilten iCloud-Ordner legen und „Ersetzen“ wählen.`);}catch(e){toast(e.message);}finally{busy=false;render();}}
@@ -26,6 +32,9 @@ function localMark(){try{const k='reiseatelier.web.syncstatus.v1',s=JSON.parse(l
 function render_(){try{window.__renderTrip?.();}catch{}}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-sync]');if(!b)return;if(b.dataset.sync==='save')save();if(b.dataset.sync==='load')q('#sync-file').click();});
 document.addEventListener('change',e=>{if(e.target.id!=='sync-file')return;const f=e.target.files[0];e.target.value='';if(f)load(f);});
+window.addEventListener('travel-sync-status',render);
+document.addEventListener('click',e=>{if(e.target.id==='safari-dismiss'){safariDismissed=true;try{sessionStorage.setItem('ra.safariDismissed','1');}catch{}bands();}});
+addEventListener('DOMContentLoaded',bands);
 window.TravelSync={render};
 setInterval(render,60000);
 })();

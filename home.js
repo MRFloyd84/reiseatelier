@@ -33,9 +33,24 @@ function cards(){const ds=trip().destinations,done=ds.filter(d=>d.status==='fert
     ['#tagebuch','✎','Mein Reisetagebuch',diaryLoaded?`${diary.count} ${diary.count===1?'Eintrag':'Einträge'} · ${diary.photos} ${diary.photos===1?'Foto':'Fotos'}`:'Erlebnisse, Stimmung, Wetter und Fotos'],
     ['#einstellungen','⚙','Einstellungen','Reisename, Sicherung, iCloud-Drive-Export']];
   return `<section class="home-cards">${c.map(([href,icon,title,text])=>`<a class="home-card" href="${href}"><span class="hc-icon" aria-hidden="true">${icon}</span><strong>${title}</strong><small>${h(text)}</small><span class="hc-go" aria-hidden="true">›</span></a>`).join('')}</section>`;}
-function syncStrip(){let m='';try{m=TravelStore.mode;}catch{}if(m==='shared')return '';return `<section class="home-sync" id="home-sync"><div><strong>Abgleich über iCloud Drive</strong><span data-sync-status></span></div><div class="button-row"><button class="primary small-btn" data-sync="load">⇧ Laden</button><button class="secondary small-btn" data-sync="save">⇩ Speichern</button><a class="small-link" href="#einstellungen">So geht's</a></div></section>`;}
-function render(){const el=q('#start');if(!el||el.hidden)return;q('#home-content').innerHTML=syncStrip()+banner()+`<div class="home-grid">${nextStops()}${latestDiary()}</div>`+cards();window.TravelSync?.render();
+function syncStrip(){let m='';try{m=TravelStore.mode;}catch{}if(m==='shared')return '';return `<section class="home-sync" id="home-sync"><div><strong>Abgleich über iCloud Drive</strong><span data-sync-status></span></div><div class="button-row"><button class="${TravelStore.sync.dirty()?'secondary':'primary'} small-btn" data-sync="load">⇧ Laden</button><button class="${TravelStore.sync.dirty()?'primary':'secondary'} small-btn" data-sync="save">⇩ Speichern</button><a class="small-link" href="#einstellungen">So geht's</a></div></section>`;}
+let guideOpen=null;document.addEventListener('toggle',e=>{if(e.target.classList?.contains('home-guide'))guideOpen=e.target.open;},true);
+function guide(){if(guideOpen===null){let seen=false;try{seen=localStorage.getItem('ra.guideSeen')==='1';localStorage.setItem('ra.guideSeen','1');}catch{}guideOpen=!seen;}let m='';try{m=TravelStore.mode;}catch{}
+  const fileSync=m!=='shared';
+  const items=[
+    ['Nur über das Symbol öffnen','Die App immer über „Reiseatelier“ auf dem Home-Bildschirm starten, nie über Safari. Nur dort bleiben eure Einträge dauerhaft gespeichert.'],
+    ...(fileSync?[
+    ['Jede hat ihren eigenen Stand','Alles wird sofort auf dem eigenen Gerät gespeichert, auch ohne Internet. Die Änderungen der anderen kommen erst mit „Laden“.'],
+    ['Laden → Ändern → Speichern','Vorher „Laden“ und die Datei aus dem Ordner „Reiseatelier“ wählen. Danach „Speichern“ → „In Dateien sichern“ → Ordner „Reiseatelier“.'],
+    ['Immer „Ersetzen“ wählen','Beim Speichern in den Ordner nicht „Beide behalten“ antippen, sonst liegen mehrere Dateien herum.'],
+    ['Gleichzeitig arbeiten ist okay','Beim Laden werden beide Stände zusammengeführt. Nur wenn ihr beide denselben Eintrag geändert habt, bleibt die neuere Änderung.']]:[]),
+    ['Fotos','Fotos werden beim Hinzufügen verkleinert. Die Originale bleiben in eurer Fotos-App.'],
+    ['Unterwegs ohne Internet','Route, Planung, Tagebuch und Fotos funktionieren auch auf See.'+(fileSync?' Abgleichen am besten im Hafen oder im WLAN.':'')],
+    ['Falls mal was schiefgeht',fileSync?'App gelöscht oder neues Handy? App neu installieren und „Laden“ tippen. Vor jedem Laden legt die App eine Sicherheitskopie an (Einstellungen).':'Vor jedem Import legt die App eine Sicherheitskopie an (Einstellungen).']];
+  return `<details class="panel home-guide"${guideOpen?' open':''}><summary><span class="hc-icon" aria-hidden="true">i</span><span><strong>Wichtig zu wissen</strong><small>${items.length} Punkte, damit nichts verloren geht</small></span></summary><ol>${items.map(([t,x])=>`<li><strong>${t}</strong><span>${x}</span></li>`).join('')}</ol></details>`;}
+function render(){const el=q('#start');if(!el||el.hidden)return;q('#home-content').innerHTML=syncStrip()+guide()+banner()+`<div class="home-grid">${nextStops()}${latestDiary()}</div>`+cards();window.TravelSync?.render();
   const p=q('#home-preset');if(p)p.onclick=()=>q('#load-preset-2')?.click();}
 async function loadDiary(){try{const list=await TravelStore.diary.list();diary={count:list.length,photos:list.reduce((a,e)=>a+(e.photos||[]).length,0),latest:list.slice().sort((a,b)=>(b.date+(b.time||'')).localeCompare(a.date+(a.time||''))).slice(0,3)};}catch{diary={count:0,photos:0,latest:[]};}diaryLoaded=true;render();}
 window.TravelHome={show(){render();loadDiary();},onTrip:render};
+addEventListener('travel-sync-status',()=>{const el=q('#start');if(el&&!el.hidden)render();});
 })();

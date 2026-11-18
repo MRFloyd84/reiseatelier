@@ -159,3 +159,28 @@
 .home-sync.sync-stale{border-left-color:#e0a23b;background:#fffaf0}
 .home-sync .button-row{width:auto;flex-wrap:wrap}
 .small-link{font-size:13px;font-weight:600;color:var(--teal)}
+/* Warnbänder und Hinweise */
+.warn-band{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:14px max(5vw,16px);font-size:14.5px;line-height:1.5;border-bottom:1px solid}
+.warn-band[hidden]{display:none}
+.warn-band>div{flex:1 1 420px}
+.warn-red{background:#fdeceb;border-color:#f2c5c1;color:#6e211b}
+.warn-amber{background:#fff5df;border-color:#f0d9a3;color:#5c4210;position:sticky;top:0;z-index:900}
+.warn-band details{margin-top:6px}
+.warn-band summary{cursor:pointer;font-weight:700;text-decoration:underline;min-height:32px;display:inline-flex;align-items:center}
+.warn-band ol{margin:6px 0 4px;padding-left:20px}
+.warn-band p{margin:4px 0 0}
+.dirty-note{color:#a3620a}
+.home-sync.sync-dirty{border-left-color:#e0a23b;background:#fffaf0}
+.home-guide{margin-bottom:16px;padding:0}
+.home-guide summary{display:flex;align-items:center;gap:14px;padding:16px 20px;cursor:pointer;list-style:none;min-height:56px}
+.home-guide summary::-webkit-details-marker{display:none}
+.home-guide summary::after{content:'›';margin-left:auto;font-size:22px;color:var(--teal);transition:transform .15s}
+.home-guide[open] summary::after{transform:rotate(90deg)}
+.home-guide summary .hc-icon{margin:0;font-weight:700;font-family:Georgia,serif;font-style:italic}
+.home-guide summary strong{display:block;font-size:16px;color:var(--navy)}
+.home-guide summary small{color:var(--muted);font-size:13px}
+.home-guide ol{margin:0;padding:4px 20px 18px 44px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 28px}
+.home-guide li{font-size:14px;line-height:1.5;color:#2b4b57}
+.home-guide li strong{display:block;color:var(--navy);font-size:14.5px}
+@media(max-width:700px){.home-guide ol{grid-template-columns:minmax(0,1fr);padding-left:38px}}
+@media(prefers-reduced-motion:reduce){.home-guide summary::after{transition:none}}

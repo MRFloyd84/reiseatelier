@@ -109,6 +109,8 @@ async function makeBackup(state,reason){
   return name;
 }
 
+/* Merkt sich, wann auf diesem Gerät zuletzt etwas geändert wurde (für den Hinweis „noch nicht gespeichert“). */
+function markChange(){try{const s=JSON.parse(localStorage.getItem(SYNC_STATUS)||'{}');s.changed=stamp();localStorage.setItem(SYNC_STATUS,JSON.stringify(s));}catch{}root.dispatchEvent(new CustomEvent('travel-sync-status'));}
 function draft(snapshot){try{localStorage.setItem(DRAFT,JSON.stringify({state:snapshot,revision}));}catch{}}
 function signal(){root.dispatchEvent(new CustomEvent('travel-storage-status',{detail:{pending,blocked,revision}}));}
 function ids(state){const out=new Set();for(const d of state.destinations||[]){out.add('d:'+d.id);for(const day of d.planning?.days||[]){out.add('t:'+day.id);for(const t of day.excursions||[])out.add('x:'+t.id);}}return out;}
@@ -123,15 +125,15 @@ save(snapshot,confirmed=false){draft(snapshot);pending++;signal();const job=tail
   if(cur.revision!==revision){if(canonical(cur.state)===canonical(snapshot)){revision=cur.revision;meta=cur.meta||null;return cur;}blocked=true;throw Error('Die Reise wurde gerade von jemand anderem oder auf einem anderen Gerät geändert. Deine letzte Änderung ist als Entwurf gesichert.');}
   const before=ids(cur.state),after=ids(snapshot);const removed=[...before].some(x=>!after.has(x));
   if(removed&&!confirmed)throw Error('Entfernen wurde nicht bestätigt.');
-  try{if(removed)await makeBackup(cur.state,'vor-loeschen');const r=await persist(snapshot,cur);revision=r.revision;await stampTrip(cur.state,snapshot).catch(()=>{});return {revision,state:snapshot};}
+  try{if(removed)await makeBackup(cur.state,'vor-loeschen');const r=await persist(snapshot,cur);revision=r.revision;await stampTrip(cur.state,snapshot).catch(()=>{});markChange();return {revision,state:snapshot};}
   catch(e){blocked=true;throw Error(errText(e));}
 });tail=job.catch(()=>{});return job.finally(()=>{pending--;if(!pending&&!blocked)try{localStorage.removeItem(DRAFT);}catch{}signal();});},
 async flush(){await tail;if(blocked)throw Error('Nicht alle Änderungen sind gespeichert.');},
 async _replace(raw,importMode,reason='vor-import'){const cur=await current();const incoming=C().validateState(raw);let next=incoming;
   if(importMode==='merge'){next=C().validateState({...cur.state,destinations:[...cur.state.destinations,...incoming.destinations.map(d=>({...d,id:crypto.randomUUID()}))]});}
   const backup=await makeBackup(cur.state,reason);const r=await persist(next,cur);revision=r.revision;await stampTrip(cur.state,next).catch(()=>{});return {revision,state:next,backup};},
-async import(raw,importMode){await this.flush();return this._replace(raw,importMode);},
-async restore(raw,importMode){await tail;const r=await this._replace(raw,importMode);blocked=false;try{localStorage.removeItem(DRAFT);}catch{}signal();return r;},
+async import(raw,importMode){await this.flush();const r=await this._replace(raw,importMode);markChange();return r;},
+async restore(raw,importMode){await tail;const r=await this._replace(raw,importMode);markChange();blocked=false;try{localStorage.removeItem(DRAFT);}catch{}signal();return r;},
 async backup(){await this.flush();const cur=await current();return {backup:await makeBackup(cur.state,'manuell')};},
 async backups(){const s=await base.collection('backups').orderBy('created','desc').get();return {backups:s.docs.map(d=>({name:d.data().name,id:d.id}))};},
 async backupText(id){const s=await base.collection('backups').doc(id).get();if(!s.exists)throw Error('Sicherung nicht gefunden.');const b=s.data();return readParts('bparts',b.key,b.parts);},
@@ -145,8 +147,8 @@ async refresh(){if(pending||blocked)return null;if(mode!=='device'&&remoteRev<=r
 /* ---------- Reisetagebuch ---------- */
 const Diary={
   async list(){await init();const s=await retry(()=>base.collection('diary').get());return s.docs.map(d=>({...d.data(),id:d.id}));},
-  async save(entry,keepStamp=false){await init();const e={...entry,updated:keepStamp&&entry.updated?entry.updated:stamp()};await retry(()=>base.collection('diary').doc(e.id).set(e));changeStamps(st=>{delete st.tomb['e:'+e.id];}).catch(()=>{});return e;},
-  async remove(id){await init();await retry(()=>base.collection('diary').doc(id).delete());await changeStamps((st,now)=>{st.tomb['e:'+id]=now;}).catch(()=>{});},
+  async save(entry,keepStamp=false){await init();const e={...entry,updated:keepStamp&&entry.updated?entry.updated:stamp()};await retry(()=>base.collection('diary').doc(e.id).set(e));changeStamps(st=>{delete st.tomb['e:'+e.id];}).catch(()=>{});markChange();return e;},
+  async remove(id){await init();await retry(()=>base.collection('diary').doc(id).delete());await changeStamps((st,now)=>{st.tomb['e:'+id]=now;}).catch(()=>{});markChange();},
   async putPhoto(id,dataUrl){await init();if(dataUrl.length>240000)throw Error('Foto ist zu groß.');await retry(()=>base.collection('photos').doc(id).set({d:dataUrl}));},
   async getPhoto(id){await init();const s=await retry(()=>base.collection('photos').doc(id).get());return s.exists?s.data().d:null;},
   async dropPhoto(id){await init();try{await base.collection('photos').doc(id).delete();}catch{}},
@@ -156,9 +158,11 @@ const Diary={
 /* ---------- Abgleich über eine Datei (z. B. geteilter iCloud-Drive-Ordner) ---------- */
 const t=x=>x?Date.parse(x)||0:0;
 function syncStatus(){try{return JSON.parse(localStorage.getItem(SYNC_STATUS)||'{}');}catch{return {};}}
-function setSyncStatus(k){try{const s=syncStatus();s[k]=stamp();localStorage.setItem(SYNC_STATUS,JSON.stringify(s));}catch{}}
+function setSyncStatus(k){try{const s=syncStatus();s[k]=stamp();localStorage.setItem(SYNC_STATUS,JSON.stringify(s));}catch{}root.dispatchEvent(new CustomEvent('travel-sync-status'));}
 const Sync={
   status:syncStatus,
+  /* Änderungen auf diesem Gerät, die noch nicht in einer gespeicherten Abgleich-Datei stecken? */
+  dirty(){const s=syncStatus();return !!s.changed&&(!s.saved||Date.parse(s.changed)>Date.parse(s.saved));},
   async exportFile(){await Store.flush();const cur=await current(),st=await getStamps(),entries=await Diary.list();const photos={};
     for(const e of entries)for(const p of e.photos||[]){if(!photos[p]){const d=await Diary.getPhoto(p);if(d)photos[p]=d;}}
     const text=JSON.stringify({type:'reiseatelier-abgleich',version:1,exportedAt:stamp(),trip:cur.state,stamps:st,diary:entries,photos});
