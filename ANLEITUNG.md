@@ -44,6 +44,10 @@ Beim Laden wird zusammengeführt, nicht überschrieben: Pro Station und Tagebuch
 
 Die App startet und arbeitet offline: Route, Planung, Tagebuch, Fotos, Ortssuche (eingebaute Liste mit rund 49.000 Orten) und eine Weltkarte mit Länderumrissen. Bereits angesehene Kartenausschnitte bleiben gespeichert. Online kommen die Detailkarte (OpenStreetMap), die genauere Ortssuche und der Abruf von Länder- und Klimadaten dazu.
 
+## Notfall
+
+Der Tab „Notfall“ enthält die örtlichen Notrufnummern und die deutschen Botschaften und Konsulate für alle Länder der Route, dazu zentrale Nummern (Auswärtiges Amt, Kartensperrung, AIDA). Alle Nummern lassen sich antippen und funktionieren offline. Während der Reise steht oben das Land der heutigen oder nächsten Station, inklusive des passenden Konsulats für den Hafen. Unter „Eure Angaben“ tragt ihr Versicherung, Kontaktpersonen und Kabine ein; das wird mit der Abgleich-Datei geteilt. Stand der Nummern: 18.11.2026 – kurz vor der Abreise einmal auf auswaertiges-amt.de prüfen.
+
 ## Aktualisieren
 
 Neue Dateien einfach über die alten hochladen. Die Reisedaten bleiben dabei auf den Geräten erhalten. Beim nächsten Öffnen mit Internet lädt die App die neue Version.
