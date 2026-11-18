@@ -1,0 +1,41 @@
+'use strict';
+/* Startseite: Reise-Banner mit Fortschritt, nächste Stationen, letzte Tagebucheinträge, Bereichskarten. */
+(function(){
+const q=s=>document.querySelector(s);
+const h=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const trip=()=>{try{return state;}catch{return {settings:{},destinations:[]};}};
+const DAY=86400000;
+const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const de=(d,o)=>new Date(d+'T12:00:00').toLocaleDateString('de-DE',o||{day:'2-digit',month:'2-digit',year:'numeric'});
+const fl=c=>{try{return flag(c);}catch{return '';}};
+const cn=c=>{try{return countryNames.of(c);}catch{return c;}};
+let diary={count:0,photos:0,latest:[]},diaryLoaded=false;
+
+function sorted(){return trip().destinations.filter(d=>d.start).slice().sort((a,b)=>(a.start+(a.arrival||'')).localeCompare(b.start+(b.arrival||'')));}
+function banner(){const ds=sorted(),s=trip().settings||{};
+  if(!ds.length)return `<section class="home-banner"><div><div class="hb-eyebrow">NOCH KEINE ROUTE</div><h2>Plant eure nächste Reise</h2><p>Tragt die erste Station ein oder übernehmt die komplette Route der AIDAdiva-Weltreise 2027/28.</p><div class="button-row"><button class="primary" data-action="new">＋ Reiseziel hinzufügen</button><button class="secondary hb-light" id="home-preset">Weltreise-Route eintragen</button></div></div></section>`;
+  const first=ds[0],last=ds.reduce((a,b)=>(b.end||b.start)>(a.end||a.start)?b:a),start=first.start,end=last.end||last.start,today=iso(new Date());
+  const total=Math.round((Date.parse(end)-Date.parse(start))/DAY)+1;let pct=0,state;
+  if(today<start){const n=Math.ceil((Date.parse(start)-Date.parse(today))/DAY);state=`Noch <b>${n}</b> ${n===1?'Tag':'Tage'} bis zur Abreise`;}
+  else if(today<=end){const n=Math.round((Date.parse(today)-Date.parse(start))/DAY)+1;pct=Math.round(n/total*100);state=`Reisetag <b>${n}</b> von ${total}`;}
+  else{pct=100;state='Reise abgeschlossen';}
+  const countries=new Set(ds.map(d=>d.country)).size,ports=ds.filter(d=>d.kind!=='zwischenstopp').length;
+  return `<section class="home-banner"><div class="hb-main"><div class="hb-eyebrow">EURE REISE</div><h2>${h(s.title||'Eure Reise')}</h2><p>${h(s.description||'')}</p><div class="hb-dates"><span>${h(de(start,{weekday:'short',day:'2-digit',month:'long',year:'numeric'}))}</span><span aria-hidden="true">→</span><span>${h(de(end,{weekday:'short',day:'2-digit',month:'long',year:'numeric'}))}</span></div>
+  <div class="hb-progress" role="img" aria-label="Fortschritt ${pct} Prozent"><i style="width:${pct}%"></i></div><p class="hb-state">${state}</p></div>
+  <dl class="hb-facts"><div><dt>Start</dt><dd>${h(first.city||first.name)}</dd></div><div><dt>Ziel</dt><dd>${h(last.city||last.name)}</dd></div><div><dt>Stationen</dt><dd>${ds.length}</dd></div><div><dt>Länder</dt><dd>${countries}</dd></div><div class="hb-wide"><dt>Reisetage</dt><dd>${total}</dd></div></dl></section>`;}
+function nextStops(){const ds=sorted(),today=iso(new Date());if(!ds.length)return '';
+  let up=ds.filter(d=>(d.end||d.start)>=today);const title=up.length&&up[0].start<=today?'Heute und als Nächstes':up.length===ds.length?'Die ersten Stationen':'Als Nächstes';if(!up.length)up=ds.slice(-3);
+  return `<section class="panel home-next"><div class="home-panel-head"><h3>${title}</h3><a href="#route">Ganze Route ›</a></div><ol>${up.slice(0,4).map(d=>`<li><span class="hn-date"><b>${h(de(d.start,{day:'2-digit'}))}</b>${h(de(d.start,{month:'short'}))}</span><span class="hn-body"><strong>${fl(d.country)} ${h(d.name)}</strong><small>${h(cn(d.country))}${d.arrival?' · an '+h(d.arrival):''}${d.departure?' · ab '+h(d.departure):''}${d.end&&d.end!==d.start?' · bis '+h(de(d.end,{day:'2-digit',month:'2-digit'})):''}</small></span><span class="badge ${h(d.status)}">${h({offen:'offen',arbeit:'begonnen',fertig:'steht'}[d.status]||'')}</span></li>`).join('')}</ol></section>`;}
+function latestDiary(){return `<section class="panel home-diary"><div class="home-panel-head"><h3>Aus dem Reisetagebuch</h3><a href="#tagebuch">Alle Einträge ›</a></div>${!diaryLoaded?'<p class="muted">Wird geladen …</p>':diary.latest.length?`<ul>${diary.latest.map(e=>`<li><a href="#tagebuch"><span class="hd-date">${h(de(e.date,{day:'2-digit',month:'short',year:'numeric'}))}</span><strong>${h(e.title||'Ohne Titel')}</strong>${e.text?`<small>${h(e.text.slice(0,110))}${e.text.length>110?' …':''}</small>`:''}</a></li>`).join('')}</ul>`:`<p class="muted">Noch keine Einträge. Unterwegs könnt ihr hier Erlebnisse, Stimmung und Fotos festhalten.</p><a class="secondary btn-link" href="#tagebuch">✎ Zum Tagebuch</a>`}</section>`;}
+function cards(){const ds=trip().destinations,done=ds.filter(d=>d.status==='fertig').length,open=ds.filter(d=>d.status==='offen').length,pct=ds.length?Math.round(done/ds.length*100):0;
+  const c=[['#route','⚑','Meine Route',ds.length?`${ds.length} Stationen in ${new Set(ds.map(d=>d.country)).size} Ländern auf der Karte`:'Stationen anlegen und auf der Karte verbinden'],
+    ['#planung','▤','Meine Reiseplanung',ds.length?`${pct} % fertig geplant · ${open} Stationen noch offen`:'Ausflüge, Buchungen und Notizen je Station'],
+    ['#tagebuch','✎','Mein Reisetagebuch',diaryLoaded?`${diary.count} ${diary.count===1?'Eintrag':'Einträge'} · ${diary.photos} ${diary.photos===1?'Foto':'Fotos'}`:'Erlebnisse, Stimmung, Wetter und Fotos'],
+    ['#einstellungen','⚙','Einstellungen','Reisename, Sicherung, iCloud-Drive-Export']];
+  return `<section class="home-cards">${c.map(([href,icon,title,text])=>`<a class="home-card" href="${href}"><span class="hc-icon" aria-hidden="true">${icon}</span><strong>${title}</strong><small>${h(text)}</small><span class="hc-go" aria-hidden="true">›</span></a>`).join('')}</section>`;}
+function syncStrip(){let m='';try{m=TravelStore.mode;}catch{}if(m==='shared')return '';return `<section class="home-sync" id="home-sync"><div><strong>Abgleich über iCloud Drive</strong><span data-sync-status></span></div><div class="button-row"><button class="primary small-btn" data-sync="load">⇧ Laden</button><button class="secondary small-btn" data-sync="save">⇩ Speichern</button><a class="small-link" href="#einstellungen">So geht's</a></div></section>`;}
+function render(){const el=q('#start');if(!el||el.hidden)return;q('#home-content').innerHTML=syncStrip()+banner()+`<div class="home-grid">${nextStops()}${latestDiary()}</div>`+cards();window.TravelSync?.render();
+  const p=q('#home-preset');if(p)p.onclick=()=>q('#load-preset-2')?.click();}
+async function loadDiary(){try{const list=await TravelStore.diary.list();diary={count:list.length,photos:list.reduce((a,e)=>a+(e.photos||[]).length,0),latest:list.slice().sort((a,b)=>(b.date+(b.time||'')).localeCompare(a.date+(a.time||''))).slice(0,3)};}catch{diary={count:0,photos:0,latest:[]};}diaryLoaded=true;render();}
+window.TravelHome={show(){render();loadDiary();},onTrip:render};
+})();
