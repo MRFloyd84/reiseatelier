@@ -37,9 +37,20 @@ const LANG={
  id:{n:'Indonesisch',go:'Tolong antar saya ke terminal kapal pesiar.',ship:'Kapal',port:'Pelabuhan',berth:'Dermaga',by:'Saya harus naik kapal sebelum pukul',pay:'Berapa ongkosnya?'},
  ms:{n:'Malaiisch',go:'Tolong hantar saya ke terminal kapal persiaran.',ship:'Kapal',port:'Pelabuhan',berth:'Dermaga',by:'Saya mesti naik kapal sebelum pukul',pay:'Berapa tambangnya?'}};
 const CC_LANG={DE:['de'],GB:['en'],CA:['en'],US:['en'],MX:['es','en'],BZ:['en'],HN:['es','en'],CR:['es','en'],PA:['es','en'],GT:['es','en'],PF:['fr','en'],CK:['en'],NC:['fr','en'],AU:['en'],ID:['id','en'],SG:['en'],MY:['ms','en'],LK:['en'],MV:['en'],SC:['en','fr'],MU:['fr','en'],RE:['fr','en'],ZA:['en'],BR:['pt','en'],CV:['pt','en'],ES:['es','en'],PT:['pt','en']};
+// Uhrzeit so schreiben, wie man sie vor Ort liest: 12-Stunden-Länder mit AM/PM, sonst landesübliche Schreibweise
+const H12=new Set(['US','CA','GB','AU','BZ','HN','CR','PA','GT','MX','CK','SG','MY','LK','MV','SC','MU','ZA']);
+function h12(t,am,pm){const [H,M]=t.split(':').map(Number);return `${H%12||12}:${String(M).padStart(2,'0')} ${H<12?am:pm}`;}
+function fmtTime(t,lang,cc){const [H,M]=t.split(':');switch(lang){
+  case 'en':return `${h12(t,'AM','PM')} (${t})`;
+  case 'es':return H12.has(cc)?`${h12(t,'a. m.','p. m.')} (${t})`:t;
+  case 'fr':return `${Number(H)}h${M}`;
+  case 'pt':return `${Number(H)}h${M}`;
+  case 'id':return `${H}.${M}`;
+  case 'ms':return `${t} (${h12(t,'AM','PM')})`;
+  default:return t+' Uhr';}}
 function taxiDialog(){let d=q('#taxi-dialog');if(!d){d=document.createElement('dialog');d.id='taxi-dialog';d.className='taxi-dialog';document.body.append(d);d.addEventListener('click',e=>{if(e.target===d||e.target.closest('[data-taxi-close]'))d.close();});}return d;}
 function openTaxi(id){const d=(trip().destinations||[]).find(x=>x.id===id);if(!d)return;const langs=CC_LANG[d.country]||['en'];const a=TravelCore.aboard(d);const port=d.city||d.name;
-  const block=(l,main)=>{const t=LANG[l];return `<div class="taxi-lang${main?' main':''}"><p class="taxi-go">${h(t.go)}</p><dl><div><dt>${h(t.ship)}</dt><dd>${SHIP}</dd></div><div><dt>${h(t.port)}</dt><dd>${h(port)}</dd></div>${d.berth?`<div><dt>${h(t.berth)}</dt><dd>${h(d.berth)}</dd></div>`:''}</dl>${a?`<p class="taxi-by">${h(t.by)} <b>${h(a.time)}</b></p>`:''}${main?`<p class="taxi-pay">${h(t.pay)}</p>`:''}</div>`;};
+  const block=(l,main)=>{const t=LANG[l];return `<div class="taxi-lang${main?' main':''}"><p class="taxi-go">${h(t.go)}</p><dl><div><dt>${h(t.ship)}</dt><dd>${SHIP}</dd></div><div><dt>${h(t.port)}</dt><dd>${h(port)}</dd></div>${d.berth?`<div><dt>${h(t.berth)}</dt><dd>${h(d.berth)}</dd></div>`:''}</dl>${a?`<p class="taxi-by">${h(t.by)} <b>${h(fmtTime(a.time,l,d.country))}</b></p>`:''}${main?`<p class="taxi-pay">${h(t.pay)}</p>`:''}</div>`;};
   const dlg=taxiDialog();dlg.innerHTML=`<div class="taxi-top"><span>${flag(d.country)} Taxi-Karte · ${h(LANG[langs[0]].n)}</span><button type="button" class="icon-btn" data-taxi-close aria-label="Schließen">×</button></div>${langs.map((l,i)=>block(l,i===0)).join('')}<p class="taxi-de">Deutsch: ${h(LANG.de.go)}${a?' Wir müssen bis '+h(a.time)+' an Bord sein.':''}</p>`;dlg.showModal();}
 
 // ---- Schiff verpasst ----
